@@ -38,8 +38,19 @@ app.post("/adduser", async (req, res) => {
 app.post("/login", async (req, res) => {
     try {
         const user = await User.findOne({ email: req.body.email });
-        const token = await jwt.sign({ id: user._id}, "my private key", { expiresIn: "2h" })
-        res.json({ token , user })
+        if (user) {
+            const user_pass = await bcrypt.compare(req.body.password, user.password)
+            if (user_pass) {
+                const token = await jwt.sign({ id: user._id }, "my private key", { expiresIn: "2h" })
+                res.json({ token, user })
+            }
+            else {
+                res.json("password not found")
+            }
+        }
+        else {
+            res.json("email not found")
+        }
     }
     catch (err) {
         res.json(err)
